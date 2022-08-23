@@ -1,0 +1,7 @@
+Invalid authentication at 2022-08-23 16:45:40.314361
+Invalid authentication at 2022-08-23 16:47:41.912258
+admin authenticated at 2022-08-23 16:51:45.078351
+maria authenticated at 2022-08-23 16:52:11.623659
+Invalid authentication at 2022-08-23 16:52:18.776819
+Invalid authentication at 2022-08-23 16:52:24.235784
+samuel authenticated at 2022-08-23 16:52:32.350683
