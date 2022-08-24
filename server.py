@@ -3,6 +3,11 @@ import json
 import socket as s
 import os
 import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
+email = os.getenv('EMAIL')
+password = os.getenv('PASSWORD')
 
 def fetch_user(password):
   users_login = open("users_data.txt", "r").read().split('\n')
