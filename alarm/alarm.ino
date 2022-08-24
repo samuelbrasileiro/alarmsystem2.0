@@ -20,6 +20,8 @@
 #define FLED 26
 #define G 27
 
+WiFiClient client1;
+
 int b_press = 0;
 int state = INITIAL_STATE;
 int previous_ldr = 0;
@@ -56,6 +58,12 @@ void setup() {
   pinMode(E, OUTPUT);
   pinMode(FLED, OUTPUT);
   pinMode(G, OUTPUT);
+
+  WiFi.begin("CINGUESTS", "acessocin");
+  Serial.println(WiFi.status());
+  byte server[] = {172, 22, 70, 160};
+  bool st = client1.connect(server, 2045);
+  Serial.println(client1.connected())
   
   Serial.println("Press the button if you want to initialize the security system");
 }
@@ -129,13 +137,13 @@ void activateSensor() {
 }
 
 void triggerBuzzer() {
-  tone(BUZZER, 500);
+  //tone(BUZZER, 500);
   delay(1000);
-  noTone(BUZZER);
+  //noTone(BUZZER);
   delay(1500);
-  tone(BUZZER, 500);
+  //tone(BUZZER, 500);
   delay(1000);
-  noTone(BUZZER);
+  //noTone(BUZZER);
   state = PASSWORD_STATE;  
 }
 
@@ -145,9 +153,17 @@ void enterPassword() {
     delay(1000);
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
-      // CONEXAO COM SERVIDOR AQUI
+      client1.println(paswd)
+      while (client1.available == 0) {
+        continue;
+      }
+      String reply = "";
+      while (client1.available) {
+        reply += client1.read();
+      }
       
-      if (paswd == "SENHA DO SERVIDOR") {
+      if (reply != "ERROR") {
+        Serial.println(reply);
         state = RESET_STATE;
         break;
       } else {
@@ -170,8 +186,17 @@ void retryPassword() {
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
       // CONEXAO COM SERVIDOR AQUI
+      client1.println(paswd)
+      while (client1.available == 0) {
+        continue;
+      }
+      String reply = "";
+      while (client1.available) {
+        reply += client1.read();
+      }
       
-      if (paswd == "SENHA DO SERVIDOR") {
+      if (reply != "ERROR") {
+        Serial.println(reply);
         state = RESET_STATE;
         break;
       } else {
@@ -188,7 +213,7 @@ void retryPassword() {
 }
 
 void alertInvasion() {
-  tone(BUZZER, 500);
+  //tone(BUZZER, 500);
   digitalWrite(LED, HIGH);
   delay(500);
   digitalWrite(LED, LOW);
