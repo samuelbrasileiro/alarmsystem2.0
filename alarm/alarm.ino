@@ -1,3 +1,7 @@
+#include <WiFi.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+
 #define INITIAL_STATE 0
 #define ARMING_STATE 1
 #define ARMED_STATE 2
@@ -8,8 +12,8 @@
 #define RESET_STATE 7
 
 #define BUTTON 14
-#define PIR 12
-#define LED 36
+#define PIR 13
+#define LED 23
 #define BUZZER 39
 
 #define A 34
@@ -42,6 +46,7 @@ bool sete_segmentos[10][7] = {
 
 
 void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   pinMode(BUTTON, INPUT); //button
   pinMode(A0, INPUT); //LDR
   pinMode(PIR, INPUT); //PIR
@@ -49,8 +54,7 @@ void setup() {
   pinMode(LED, OUTPUT); //led
   pinMode(BUZZER, OUTPUT); //buzzer
   
-  Serial.begin(9600);
-
+  Serial.begin(115200);
   pinMode(A, OUTPUT);
   pinMode(B, OUTPUT);
   pinMode(C, OUTPUT);
@@ -60,10 +64,13 @@ void setup() {
   pinMode(G, OUTPUT);
 
   WiFi.begin("CINGUESTS", "acessocin");
-  Serial.println(WiFi.status());
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.print(".");
+  }
   byte server[] = {172, 22, 70, 160};
   bool st = client1.connect(server, 2045);
-  Serial.println(client1.connected())
+  Serial.println(client1.connected());
   
   Serial.println("Press the button if you want to initialize the security system");
 }
@@ -153,13 +160,13 @@ void enterPassword() {
     delay(1000);
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
-      client1.println(paswd)
-      while (client1.available == 0) {
+      client1.println(paswd);
+      while (client1.available() == 0) {
         continue;
       }
       String reply = "";
-      while (client1.available) {
-        reply += client1.read();
+      while (client1.available()) {
+        reply += (char)  client1.read();
       }
       
       if (reply != "ERROR") {
@@ -168,7 +175,7 @@ void enterPassword() {
         break;
       } else {
         state = PASSFAIL_STATE;
-        Serial.println("Wrong password...");
+        Serial.println("Invalid password...");
         break;
       }
     }
@@ -186,13 +193,15 @@ void retryPassword() {
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
       // CONEXAO COM SERVIDOR AQUI
-      client1.println(paswd)
-      while (client1.available == 0) {
+      Serial.println(client1.connected());
+      client1.println(paswd);
+      Serial.println(client1.connected());
+      while (client1.available() == 0) {
         continue;
       }
       String reply = "";
-      while (client1.available) {
-        reply += client1.read();
+      while (client1.available()) {
+        reply += (char) client1.read();
       }
       
       if (reply != "ERROR") {
@@ -201,7 +210,7 @@ void retryPassword() {
         break;
       } else {
         state = FAILED_STATE;
-        Serial.println("Wrong password...");
+        Serial.println("Invalid password...");
         break;
       }
     }
