@@ -14,17 +14,15 @@
 #define BUTTON 14
 #define PIR 13
 #define LED 23
-#define BUZZER 39
+#define BUZZER 19
 
-#define A 34
-#define B 35
+#define A 22
+#define B 21
 #define C 32
 #define D 33
 #define E 25
 #define FLED 26
 #define G 27
-
-WiFiClient client1;
 
 int b_press = 0;
 int state = INITIAL_STATE;
@@ -44,6 +42,7 @@ bool sete_segmentos[10][7] = {
 { 1,1,1,1,0,1,1 }, // = Digito 9
 };
 
+byte server[] = {192, 168, 15, 11};
 
 void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
@@ -63,15 +62,12 @@ void setup() {
   pinMode(FLED, OUTPUT);
   pinMode(G, OUTPUT);
 
-  WiFi.begin("CINGUESTS", "acessocin");
+  WiFi.begin("VIVOFIBRA-976B", "xiPEZUSJDC");
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
       Serial.print(".");
   }
-  byte server[] = {172, 22, 70, 160};
-  bool st = client1.connect(server, 2045);
-  Serial.println(client1.connected());
-  
+  Serial.println("Connected to the wifi");
   Serial.println("Press the button if you want to initialize the security system");
 }
 
@@ -128,13 +124,13 @@ void initializeSystem() {
     delay(500);
     digitalWrite(LED, LOW);
   }
-  previous_ldr = analogRead(A0);
+  previous_ldr = digitalRead(A0);
   state = ARMED_STATE;
 }
 
 void activateSensor() {
   int pir_read = digitalRead(PIR);
-  int ldr_read = analogRead(A0);
+  int ldr_read = digitalRead(A0);
   Serial.println(pir_read);
   if (pir_read or (ldr_read - previous_ldr > 300)) {
     state = TRIGGERED_STATE;
@@ -144,13 +140,13 @@ void activateSensor() {
 }
 
 void triggerBuzzer() {
-  //tone(BUZZER, 500);
+  digitalWrite(BUZZER, HIGH);
   delay(1000);
-  //noTone(BUZZER);
+  digitalWrite(BUZZER, LOW);
   delay(1500);
-  //tone(BUZZER, 500);
+  digitalWrite(BUZZER, HIGH);
   delay(1000);
-  //noTone(BUZZER);
+  digitalWrite(BUZZER, LOW);
   state = PASSWORD_STATE;  
 }
 
@@ -160,13 +156,15 @@ void enterPassword() {
     delay(1000);
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
-      client1.println(paswd);
-      while (client1.available() == 0) {
+      WiFiClient cliente;
+      bool st = cliente.connect(server, 2045);
+      cliente.println(paswd);
+      while (cliente.available() == 0) {
         continue;
       }
       String reply = "";
-      while (client1.available()) {
-        reply += (char)  client1.read();
+      while (cliente.available()) {
+        reply += (char)  cliente.read();
       }
       
       if (reply != "ERROR") {
@@ -192,16 +190,15 @@ void retryPassword() {
     delay(1000);
     if (Serial.available() > 0) {
       String paswd = Serial.readString();
-      // CONEXAO COM SERVIDOR AQUI
-      Serial.println(client1.connected());
-      client1.println(paswd);
-      Serial.println(client1.connected());
-      while (client1.available() == 0) {
+      WiFiClient cliente;
+      bool st = cliente.connect(server, 2045);
+      cliente.println(paswd);
+      while (cliente.available() == 0) {
         continue;
       }
       String reply = "";
-      while (client1.available()) {
-        reply += (char) client1.read();
+      while (cliente.available()) {
+        reply += (char)  cliente.read();
       }
       
       if (reply != "ERROR") {
@@ -222,7 +219,7 @@ void retryPassword() {
 }
 
 void alertInvasion() {
-  //tone(BUZZER, 500);
+  digitalWrite(BUZZER, HIGH);
   digitalWrite(LED, HIGH);
   delay(500);
   digitalWrite(LED, LOW);
