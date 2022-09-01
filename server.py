@@ -62,22 +62,22 @@ print("Successful binding!")
 
 error_count = 0
 while True:
-    print("eita")
-    send_email()
-    conn,addr = socket.accept()
-    data = conn.recv(4096)
-    password = data.decode("utf-8").strip()
-    print(password) 
-    user = fetch_user(password)
-    log_user(user)
-    if user == None:
-      user = "ERROR"
-      error_count += 1
-    else:
-        error_count = 0
-    conn.sendall(bytes(user, "utf-8"))
-    print(error_count)
-    if error_count == 2:
-        send_email()
-        error_count = 
-
+    try:
+        conn,addr = socket.accept()
+        data = conn.recv(4096)
+        password = data.decode("utf-8").strip()
+        print(password) 
+        user = fetch_user(password)
+        log_user(user)
+        if user == None:
+          user = "ERROR"
+          error_count += 1
+        else:
+            error_count = 0
+        conn.sendall(bytes(user, "utf-8"))
+        print(error_count)
+        if error_count == 2:
+            send_email()
+            error_count = 0
+    except:
+        pass
