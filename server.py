@@ -31,19 +31,19 @@ def log_user(user):
 
 def send_email():
     users_log = open("users_log.txt", "r").read().split('\n')
-    failed_logs = users_logs[-2:]
+    failed_logs = users_log[-3:-1]
     msgTo = os.getenv('RECEIVE_EMAIL')
-    smtpObj = smtplib.SMTP('servidor smtp', porta)
-    smtpObj.ehlo()
-    smtpObj.starttls()
     msgFrom = os.getenv('SEND_EMAIL')
     fromPass = os.getenv('SEND_PASSWORD')
+    smtpObj = smtplib.SMTP("smtp.mailtrap.io", 2525)
+    smtpObj.ehlo()
+    smtpObj.starttls()
     smtpObj.login(msgFrom, fromPass)
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Acesso inválido consecutivo"
     msg["From"] = msgFrom
     msg["To"] = msgTo
-    text = """\ Finalmente enviando o corpo do email"""
+    text = """\ %s """ % '\n'.join(failed_logs)
     part1 = MIMEText(text,"plain")
     msg.attach(part1)
     smtpObj.sendmail(msgFrom,msgTo,msg.as_string())
@@ -53,7 +53,7 @@ def send_email():
 
 socket = s.socket(s.AF_INET, s.SOCK_STREAM)
 try:
-    socket.bind(('127.0.0.1', 2045))
+    socket.bind(('192.168.15.11', 2045))
 except s.error:
     print("Failed to bind")
     sys.exit()
@@ -62,20 +62,22 @@ print("Successful binding!")
 
 error_count = 0
 while True:
-    try:
-        conn,addr = socket.accept()
-        data = conn.recv(4096)
-        password = data.decode("utf-8").strip()
-        user = fetch_user(password)
-        log_user(user)
-        if user == None:
-          user = "ERROR"
-          error_count += 1
-          if error_count == 2:
-              send_email()
-        else:
-            error_count = 0
-        conn.sendall(bytes(user, "utf-8"))
-    except:
-      pass
+    print("eita")
+    send_email()
+    conn,addr = socket.accept()
+    data = conn.recv(4096)
+    password = data.decode("utf-8").strip()
+    print(password) 
+    user = fetch_user(password)
+    log_user(user)
+    if user == None:
+      user = "ERROR"
+      error_count += 1
+    else:
+        error_count = 0
+    conn.sendall(bytes(user, "utf-8"))
+    print(error_count)
+    if error_count == 2:
+        send_email()
+        error_count = 
 
